@@ -1,0 +1,35 @@
+# Template systemd unit for the stanleeinfo index app.
+#
+# Install on the server:
+#   sudo cp stanleeinfo.service /etc/systemd/system/
+#   # edit the paths/port below to match the box
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now stanleeinfo
+#
+# Change the port by editing --bind in ExecStart, then:
+#   sudo systemctl daemon-reload && sudo systemctl restart stanleeinfo
+
+[Unit]
+Description=stanleeinfo index app
+After=network.target
+
+[Service]
+# User/group the service runs as.
+User=www-data
+Group=www-data
+
+# Absolute path to the deployed app. Adjust to wherever it lives on prod.
+WorkingDirectory=/srv/stanleeinfo_index
+
+# Use the venv's gunicorn (absolute path) so we don't depend on $PATH.
+# Set the port via --bind. Use 127.0.0.1 if nginx/another proxy sits in front.
+ExecStart=/srv/stanleeinfo_index/.venv/bin/gunicorn --workers 3 --bind 0.0.0.0:8000 app:app
+
+# Secrets (if any) go in a file outside the repo, e.g. chmod 600 /etc/stanleeinfo/env
+# EnvironmentFile=/etc/stanleeinfo/env
+
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
